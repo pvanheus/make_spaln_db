@@ -1,0 +1,81 @@
+<tool id="make_spaln_db" name="Make Spaln DB" version="@TOOL_VERSION@+galaxy0">
+    <description>Make a database for spaln searching</description>
+    <macros>
+        <token name="@TOOL_VERSION@">2.3.3a</token>
+    </macros>
+    <requirements>
+        <requirement type="package" version="@TOOL_VERSION@">spaln</requirement>
+    </requirements>
+    <command detect_errors="exit_code"><![CDATA[
+        if [[ ! -d '${output_db.extra_files_path}' ]] ; then mkdir '${output_db.extra_files_path}' ; fi &&
+        ln -s '${input_fasta}' spalndb.fasta &&
+        makdbs
+        #if str($mol_type) == "nucl"
+            -KD
+        #elif str($mol_type) == "prot"
+            -KA
+        #else
+            echo "Invalid molecule type: ${mol_type}" >& 2
+            false
+        #end if
+            spalndb.fasta &&
+        #if str($mol_type) == "nucl"
+            makblk.pl -KD -W'${output_db.extra_files_path}/spalndb.bkn' spalndb.fasta &&
+            makblk.pl -KD -W'${output_db.extra_files_path}/spalndb.bkp' spalndb.fasta &&
+        #elif str($mol_type) == "prot"
+            makblk.pl -KA -W'${output_db.extra_files_path}/spalndb.bka' spalndb.fasta &&
+        #end if
+        mv spalndb.ent spalndb.grp spalndb.idx spalndb.seq '${output_db.extra_files_path}/'
+    ]]></command>
+    <inputs>
+        <param type="data" name="input_fasta" format="fasta" />
+        <param type="select" name="mol_type" label="Molecule type">
+            <option value="nucl" selected="true">Nucleotide</option>
+            <option value="prot">Amino Acid (Protein)</option>
+        </param>
+    </inputs>
+    <outputs>
+        <data name="output_db" format="spalndbnp" from_work_dir="output_db" label="spaln DB from ${on_string}">
+            <change_format>
+                <when input="mol_type" value="prot" format="spalndba" />
+            </change_format>
+        </data>
+    </outputs>
+    <tests>
+        <test>
+            <param name="input_fasta" value="nucl_input.fasta" ftype="fasta" />
+            <param name="mol_type" value="nucl" />
+            <output name="output_db" compare="sim_size" file="nucl_spaln_DB_from_data_1_spalndbnp.html">
+                <extra_files compare="sim_size" type="file" value="nucl_spalndb.bkn" name="spalndb.bkn" />
+                <extra_files compare="sim_size" type="file" value="nucl_spalndb.bkp" name="spalndb.bkp" />
+                <extra_files compare="sim_size" type="file" value="nucl_spalndb.ent" name="spalndb.ent" />
+                <extra_files compare="sim_size" type="file" value="nucl_spalndb.grp" name="spalndb.grp" />
+                <extra_files compare="sim_size" type="file" value="nucl_spalndb.idx" name="spalndb.idx" />
+                <extra_files compare="sim_size" type="file" value="nucl_spalndb.seq" name="spalndb.seq" />
+            </output>
+        </test>
+        <test>
+            <param name="input_fasta" value="prot_input.fasta" ftype="fasta" />
+            <param name="mol_type" value="prot" />
+            <output name="output_db" compare="sim_size" file="prot_spaln_DB_from_data_1_spalndba.html">
+                <extra_files compare="sim_size" type="file" value="prot_spalndb.bka" name="spalndb.bka" />
+                <extra_files compare="sim_size" type="file" value="prot_spalndb.ent" name="spalndb.ent" />
+                <extra_files compare="sim_size" type="file" value="prot_spalndb.grp" name="spalndb.grp" />
+                <extra_files compare="sim_size" type="file" value="prot_spalndb.idx" name="spalndb.idx" />
+                <extra_files compare="sim_size" type="file" value="prot_spalndb.seq" name="spalndb.seq" />
+            </output>
+        </test>
+    </tests>
+    <help><![CDATA[
+        Spaln_ (space-efficient spliced alignment) is a stand-alone program that maps and aligns a 
+        set of cDNA or protein sequences onto a whole genomic sequence in a single job.
+
+        This tool builds a database for spaln to search against. The input is a FASTA file of
+        nucleotide or amino acid records.
+
+        .. _Spaln: http://www.genome.ist.i.kyoto-u.ac.jp/~aln_user/spaln/
+    ]]></help>
+    <citations>
+        <citation type="doi">10.1093/nar/gkn105</citation>
+    </citations>
+</tool>

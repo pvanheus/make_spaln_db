@@ -1,0 +1,10 @@
+categories:
+  - Sequence Analysis
+description: Make a database for spaln searching
+long_description: |
+ This tool builds a database for spaln to search against. The input is a FASTA file of
+ nucleotide or amino acid records.
+name: make_spaln_db
+owner: sanbi-uwc
+remote_repository_url: https://github.com/pvanheus/make_spaln_db
+type: unrestricted
